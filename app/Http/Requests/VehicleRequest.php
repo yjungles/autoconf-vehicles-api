@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use App\Enums\CambioEnum;
 use App\Enums\CombustivelEnum;
+use App\Rules\ChassiRule;
 use App\Rules\MercosulPlateRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -27,8 +28,7 @@ class VehicleRequest extends FormRequest
             'chassi' => [
                 'required',
                 Rule::unique('vehicles', 'chassi')->ignore($vehicleId),
-                'size:17',
-                'alpha_num'
+                new ChassiRule(),
             ],
             'marca' => ['required', 'string', 'max:255'],
             'modelo' => ['required', 'string', 'max:255'],
@@ -43,6 +43,11 @@ class VehicleRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
+        if ($this->filled('chassi')) {
+            $this->merge([
+                'chassi' => strtoupper($this->chassi),
+            ]);
+        }
         if ($this->filled('placa')) {
             $this->merge([
                 'placa' => strtoupper($this->placa),
@@ -58,8 +63,6 @@ class VehicleRequest extends FormRequest
 
             'chassi.required' => 'O chassi é obrigatório.',
             'chassi.unique' => 'Já existe um veículo cadastrado com este chassi.',
-            'chassi.size' => 'O chassi deve possuir exatamente 17 caracteres.',
-            'chassi.alpha_num' => 'O chassi deve conter apenas letras e números.',
 
             'marca.required' => 'A marca do veículo é obrigatória.',
             'marca.max' => 'A marca não pode ter mais que 255 caracteres.',

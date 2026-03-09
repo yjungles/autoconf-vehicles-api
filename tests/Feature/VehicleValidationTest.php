@@ -124,6 +124,20 @@ it('valida chassi com tamanho inválido', function () {
         ->assertJsonValidationErrors(['chassi']);
 });
 
+it('valida chassi com letras proibidas', function () {
+    $user = User::factory()->create();
+
+    $response = $this
+        ->actingAs($user, 'sanctum')
+        ->postJson('/api/vehicles', vehicleValidationPayload([
+            'chassi' => '9BWZZZ377VT0O4251',
+        ]));
+
+    $response
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors(['chassi']);
+});
+
 it('valida km negativo', function () {
     $user = User::factory()->create();
 

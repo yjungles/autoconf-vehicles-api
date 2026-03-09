@@ -2,14 +2,24 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\LoginRequest;
+use App\Http\Requests\AuthLoginRequest;
+use App\Http\Requests\AuthRegisterRequest;
+use App\Http\Resources\UserResource;
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
 {
-    public function login(LoginRequest $request): JsonResponse
+    public function register(AuthRegisterRequest $request)
+    {
+        $user = User::create($request->validated());
+
+        return response()->json(['user' => $user], 201);
+    }
+
+    public function login(AuthLoginRequest $request): JsonResponse
     {
         if (!Auth::attempt($request->validated())) {
             return response()->json(['message' => 'Credenciais inválidas'], 401);
@@ -18,7 +28,8 @@ class AuthController extends Controller
         $request->session()->regenerate();
 
         return response()->json([
-            'message' => 'Login realizado com sucesso'
+            'message' => 'Login realizado com sucesso',
+            'user' => new UserResource(auth()->user()),
         ]);
     }
 
@@ -34,7 +45,7 @@ class AuthController extends Controller
         ]);
     }
 
-    public function user(Request $request): JsonResponse
+    public function me(Request $request): JsonResponse
     {
         return response()->json($request->user());
     }

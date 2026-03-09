@@ -1,59 +1,297 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+# AutoConf Vehicles API
 
-## About Laravel
+API REST desenvolvida com **Laravel 12** para gerenciamento de veículos.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Sobre o projeto
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+A **AUTOCONF Vehicles API** é uma API construída em Laravel para permitir:
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- Cadastro e autenticação de usuários baseada em sessão/cookie com **Sanctum para SPA**
+- Consulta e gerenciamento de veículos
+- Upload e gerenciamento de imagens de veículos
 
-## Learning Laravel
+## Stack utilizada
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+#### Backend
+- **PHP 8.2+**
+- **Laravel 12**
+- **Laravel Sanctum**
+- **MySQL**
+- **Scramble** para documentação OpenAPI
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+#### Testes
+- **Pest**
 
-## Laravel Sponsors
+## Requisitos
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+Antes de iniciar, você precisa ter instalado:
 
-### Premium Partners
+- **PHP 8.2+**
+- **Composer**
+- **Node.js**
+- **npm / pnpm**
+- **MySQL / MariaDB**
+- Extensões PHP normalmente utilizadas pelo Laravel:
+    - `pdo_mysql`
+    - `mbstring`
+    - `openssl`
+    - `tokenizer`
+    - `xml`
+    - `ctype`
+    - `json`
+    - `fileinfo`
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
 
-## Contributing
+## Instalação
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Clone o repositório:
 
-## Code of Conduct
+```bash
+git clone https://github.com/yjungles/autoconf-vehicles-api.git autoconf-vehicles-api
+``` 
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Instale as dependências do PHP:
+```bash
+composer install
+``` 
 
-## Security Vulnerabilities
+Instale as dependências do frontend:
+```bash
+npm install
+``` 
+Copie o arquivo de ambiente:
+```bash
+cp .env.example .env
+``` 
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+Gere a chave da aplicação:
+```bash
+php artisan key:generate
+``` 
 
-## License
+---
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+## Configuração do ambiente
+
+Configure o arquivo `.env` com os dados do seu ambiente local.
+
+### Exemplo de configuração mínima
+
+#### Variáveis importantes deste projeto
+
+Além das variáveis padrão do Laravel, este projeto usa configurações específicas para imagens de veículos:
+
+```env
+VEHICLE_IMAGES_DISK=public 
+VEHICLE_IMAGES_DIRECTORY=vehicles 
+VEHICLE_IMAGES_MAX_SIZE_KB=5120 
+VEHICLE_IMAGES_DEFAULT_IMAGE_PATH=default.png 
+VEHICLE_IMAGES_ALLOWED_EXTENSIONS="jpg,jpeg,png,bmp"
+
+SANCTUM_STATEFUL_DOMAINS=localhost:5173,127.0.0.1:5173
+``` 
+
+### Observações importantes
+
+- `SANCTUM_STATEFUL_DOMAINS` deve conter os domínios/hosts da sua aplicação SPA.
+- Como a autenticação SPA do Sanctum usa **cookies + sessão**, a configuração correta de domínio e CORS é essencial.
+- `VEHICLE_IMAGES_DEFAULT_IMAGE_PATH` deve apontar para a imagem padrão utilizada nas seeders e factories. No exemplo ela fica em `/public/default.png` dentro da storage
+---
+
+## Banco de dados
+
+Execute as migrations:
+```bash
+php artisan migrate
+``` 
+Para recriar e popular com seeders:
+```bash
+php artisan migrate:fresh --seed
+``` 
+
+
+## Storage e arquivos públicos
+
+Este projeto usa o disco `public` para armazenar imagens de veículos.
+
+Crie o link simbólico do storage:
+```
+php artisan storage:link
+``` 
+
+## Executando o projeto
+
+Servidor Laravel:
+```
+php artisan serve
+``` 
+
+## Seeders e dados iniciais
+
+Para popular o banco com dados iniciais:
+
+```
+php artisan db:seed
+``` 
+
+Ou:
+```
+bash php artisan migrate:fresh --seed
+``` 
+
+
+O projeto possui seeders para gerar dados de usuários e veículos de exemplo para ambiente local.
+
+> Recomenda-se conferir os seeders antes de usar em ambientes compartilhados ou de homologação.
+
+#### Usuários de exemplo
+Administrador:
+```
+admin@example.com
+senha: password
+```
+Usuário:
+```
+test@example.com
+senha: password
+```
+
+
+## Autenticação com Sanctum SPA
+
+Este projeto utiliza **Laravel Sanctum no modo SPA Authentication**, ou seja:
+
+- Autenticação baseada em **sessão**
+- Uso de **cookies**
+- Proteção por **CSRF**
+
+### Fluxo de autenticação
+
+#### 1. Obter cookie CSRF
+
+Antes de fazer login, a SPA deve chamar:
+```
+http GET /api/csrf-cookie
+``` 
+#### 2. Fazer login
+Envie as credenciais para:
+```http
+POST /api/auth/login
+``` 
+
+Exemplo de payload:
+```json
+{ "email": "<EMAIL_DO_USUARIO>", "password": "<SENHA_DO_USUARIO>" }
+``` 
+
+Se autenticado com sucesso, a sessão será iniciada e o navegador passará a enviar automaticamente os cookies nas próximas requisições.
+
+#### 3. Consultar usuário autenticado
+```http
+GET /api/auth/me
+``` 
+
+#### 4. Fazer logout
+```http
+POST /api/auth/logout
+``` 
+
+### Requisitos para o Sanctum SPA
+
+- o frontend deve enviar requisições com `withCredentials: true`
+- `SANCTUM_STATEFUL_DOMAINS` deve incluir o domínio/porta da SPA
+- `SESSION_DOMAIN`, `APP_URL` e CORS devem estar coerentes com seu ambiente
+- o fluxo deve começar obtendo o cookie CSRF
+---
+
+## Documentação da API
+
+A documentação da API é gerada com **Scramble**.
+
+### Acessar a documentação
+Com a aplicação em execução, acesse:
+```
+/docs/api
+``` 
+
+Exemplo local:
+```
+http://localhost:8000/docs/api
+``` 
+
+### O que a documentação permite
+
+- rotas disponíveis
+- parâmetros
+- payloads
+- respostas
+- schemas
+- possibilidade de testar endpoints pela interface, quando aplicável
+
+#### Observação
+A documentação é gerada com base nas rotas da API e na estrutura da aplicação. Sempre que novos endpoints forem adicionados, a documentação pode ser atualizada automaticamente conforme o uso do Scramble no projeto.
+
+## Principais rotas
+
+### Autenticação
+
+| Método | Rota | Descrição |
+|---|---|---|
+| GET | `/api/csrf-cookie` | Inicializa cookies/CSRF para autenticação SPA |
+| POST | `/api/auth/register` | Cadastro de usuário |
+| POST | `/api/auth/login` | Login |
+| POST | `/api/auth/logout` | Logout do usuário autenticado |
+| GET | `/api/auth/me` | Retorna o usuário autenticado |
+
+### Veículos
+
+> As rotas abaixo exigem autenticação com `auth:sanctum`.
+
+| Método | Rota | Descrição |
+|---|---|---|
+| GET | `/api/vehicles` | Lista veículos |
+| POST | `/api/vehicles` | Cria veículo |
+| GET | `/api/vehicles/{id}` | Exibe veículo |
+| PUT/PATCH | `/api/vehicles/{id}` | Atualiza veículo |
+| DELETE | `/api/vehicles/{id}` | Remove veículo |
+
+### Imagens de veículos
+
+| Método | Rota | Descrição |
+|---|---|---|
+| POST | `/api/vehicles/{vehicleId}/images` | Adiciona imagem ao veículo |
+| PATCH | `/api/vehicles/{vehicleId}/images/{imageId}/cover` | Define imagem como capa |
+| DELETE | `/api/vehicles/{vehicleId}/images/{imageId}` | Remove imagem |
+
+> Para detalhes completos de payload e resposta, consulte `/docs/api`.
+
+## Testes
+
+Para executar os testes:
+```bash
+php artisan test
+``` 
+
+## Boas práticas para consumo da API
+
+- sempre obtenha o cookie CSRF antes do login em SPA
+- envie credenciais com `withCredentials: true`
+- use a documentação em `/docs/api` para validar formatos de entrada e saída
+- em ambiente local, verifique se `APP_URL`, `SESSION_DOMAIN` e `SANCTUM_STATEFUL_DOMAINS` estão compatíveis
+- execute `php artisan storage:link` antes de testar upload e acesso a arquivos públicos
+- execute os seeders para ter massa de dados inicial de desenvolvimento
+
+
+## Comandos úteis
+
+```bash
+composer install 
+npm install 
+cp .env.example .env 
+php artisan key:generate 
+php artisan migrate 
+php artisan storage:link 
+php artisan db:seed 
+php artisan test
+``` 

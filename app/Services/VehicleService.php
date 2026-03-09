@@ -23,7 +23,9 @@ class VehicleService
      */
     public function list(Request $request): LengthAwarePaginator
     {
-        $query = Vehicle::query()->with(['images', 'owner:id,name,email', 'updater:id,name,email']);
+        $query = Vehicle::query()
+            ->with(['images', 'owner:id,name,email', 'updater:id,name,email'])
+            ->latest();
 
         if ($request->filled('q')) {
             $this->applyGlobalSearch($query, $request->input('q'));

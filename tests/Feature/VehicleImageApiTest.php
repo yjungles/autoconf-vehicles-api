@@ -40,6 +40,39 @@ it('faz upload de imagem para um veículo', function () {
     Storage::disk('public')->assertExists($image->path);
 });
 
+it('define a primeira imagem enviada como capa automaticamente', function () {
+    Storage::fake('public');
+
+    config()->set('vehicles.images.disk', 'public');
+    config()->set('vehicles.images.directory', 'vehicles');
+
+    $user = User::factory()->create();
+    $vehicle = Vehicle::factory()->create([
+        'user_id' => $user->id,
+    ]);
+
+    $response = $this
+        ->actingAs($user, 'sanctum')
+        ->postJson("/api/vehicles/{$vehicle->id}/images", [
+            'files' => [
+                UploadedFile::fake()->image('foto-capa.jpg', 500, 500),
+            ],
+        ]);
+
+    $response->assertCreated();
+
+    $image = VehicleImage::first();
+
+    expect($image)->not->toBeNull();
+    expect($image->is_cover)->toBeTrue();
+
+    expect(
+        VehicleImage::where('vehicle_id', $vehicle->id)
+            ->where('is_cover', true)
+            ->count()
+    )->toBe(1);
+});
+
 it('valida que o upload exige pelo menos uma imagem', function () {
     $user = User::factory()->create();
     $vehicle = Vehicle::factory()->create([
@@ -169,4 +202,50 @@ it('remove imagem do banco e do storage', function () {
     ]);
 
     Storage::disk('public')->assertMissing($image->path);
+});
+
+it('define outra imagem como capa ao excluir a capa atual', function () {
+    Storage::fake('public');
+
+    config()->set('vehicles.images.disk', 'public');
+    config()->set('vehicles.images.directory', 'vehicles');
+
+    $user = User::factory()->create();
+
+    $vehicle = Vehicle::factory()->create([
+        'user_id' => $user->id,
+    ]);
+
+    $coverImage = VehicleImage::factory()->create([
+        'vehicle_id' => $vehicle->id,
+        'path' => "vehicles/{$vehicle->id}/foto-capa.jpg",
+        'is_cover' => true,
+    ]);
+
+    $nextImage = VehicleImage::factory()->create([
+        'vehicle_id' => $vehicle->id,
+        'path' => "vehicles/{$vehicle->id}/foto-2.jpg",
+        'is_cover' => false,
+    ]);
+
+    Storage::disk('public')->put($coverImage->path, 'conteudo-capa');
+    Storage::disk('public')->put($nextImage->path, 'conteudo-secundaria');
+
+    $response = $this
+        ->actingAs($user, 'sanctum')
+        ->deleteJson("/api/vehicles/{$vehicle->id}/images/{$coverImage->id}");
+
+    $response->assertOk();
+
+    $this->assertDatabaseMissing('vehicle_images', [
+        'id' => $coverImage->id,
+    ]);
+
+    expect($nextImage->fresh()->is_cover)->toBeTrue();
+
+    expect(
+        VehicleImage::where('vehicle_id', $vehicle->id)
+            ->where('is_cover', true)
+            ->count()
+    )->toBe(1);
 });

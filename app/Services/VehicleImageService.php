@@ -46,8 +46,11 @@ class VehicleImageService
             $this->disk
         );
 
+        $hasCoverImage = $vehicle->images()->where('is_cover', true)->exists();
+
         return $vehicle->images()->create([
             'path' => $path,
+            'is_cover' => ! $hasCoverImage,
         ]);
     }
 
@@ -70,11 +73,37 @@ class VehicleImageService
      */
     public function deleteImage(int $vehicleId, int $imageId): void
     {
+        DB::transaction(function () use ($vehicleId, $imageId) {
+            $image = VehicleImage::where('vehicle_id', $vehicleId)->findOrFail($imageId);
+
+            Storage::disk($this->disk)->delete($image->path);
+
+            $image->delete();
+
+            if ($image->is_cover) {
+                $this->ensureVehicleHasCoverImage($vehicleId);
+            }
+        });
+    }
+
+    private function ensureVehicleHasCoverImage(int $vehicleId): void
+    {
+        $hasCoverImage = VehicleImage::where('vehicle_id', $vehicleId)
+            ->where('is_cover', true)
+            ->exists();
+
+        if ($hasCoverImage) {
+            return;
+        }
+
         $image = VehicleImage::where('vehicle_id', $vehicleId)
-            ->findOrFail($imageId);
+            ->orderBy('id')
+            ->first();
 
-        Storage::disk($this->disk)->delete($image->path);
+        if (! $image) {
+            return;
+        }
 
-        $image->delete();
+        $image->update(['is_cover' => true]);
     }
 }

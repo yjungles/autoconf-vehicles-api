@@ -23,9 +23,7 @@ class VehicleService
      */
     public function list(Request $request): LengthAwarePaginator
     {
-        $query = Vehicle::query()
-            ->with(['images', 'owner:id,name,email', 'updater:id,name,email'])
-            ->latest();
+        $query = Vehicle::query()->with(['images', 'owner:id,name,email', 'updater:id,name,email']);
 
         if ($request->filled('q')) {
             $this->applyGlobalSearch($query, $request->input('q'));
@@ -33,9 +31,11 @@ class VehicleService
 
         $this->applyFilters($query, $request);
 
-        if ($request->filled('sort')) {
-            $this->applySorting($query, $request->input('sort'));
-        }
+        $request->whenFilled('sort', function (string $sort) use ($query) {
+            $this->applySorting($query, $sort);
+        }, function () use ($query) {
+            $query->latest();
+        });
 
         $perPage = $request->integer('per_page', config('pagination.per_page.default'));
         $perPage = max(1, min($perPage, 100));
